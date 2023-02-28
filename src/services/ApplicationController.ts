@@ -2,7 +2,7 @@
 // 该文件由 OneAPI 自动生成，请勿手动修改！
 import { request } from '@umijs/max';
 
-/** 获取企业列表 GET /api/company */
+/** 获取小程序列表 GET /api/app */
 export async function queryApplications(
   params: {
     // query
@@ -24,17 +24,42 @@ export async function queryApplications(
   });
 }
 
-/** 此处后端没有提供注释 POST /api/v1/user */
-export async function addCompany(
-  body?: API.UserInfoVO,
+/** 获取小程序详情 GET /api/app/appid */
+export async function queryAppInfo(
+  appid: string,
   options?: { [key: string]: any },
 ) {
-  return request<API.Result_UserInfo_>('/company', {
-    method: 'POST',
-    headers: {
+  return request<API.TableListResult>(`/app/${appid}`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 上传新版本 */
+export async function uploadApp(
+  appid: string,
+  data: {
+    template_id: number;
+    user_desc: string;
+    user_version: string;
+  }
+) {
+  return request<API.Result_UserInfo_>(`/app/upload/${appid}`, {
+  method: 'POST',
+  data,
+  headers: {
       'Content-Type': 'application/json',
     },
-    data: body,
-    ...(options || {}),
+  });
+}
+/** 提审代码 */
+export async function auditApp(
+  appid: string,
+) {
+  return request<API.Result_UserInfo_>(`/app/audit/${appid}`, {
+  method: 'POST',
+  headers: {
+      'Content-Type': 'application/json',
+    },
   });
 }

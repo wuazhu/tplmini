@@ -21,7 +21,7 @@ export const layout = () => {
 export const request: RequestConfig = {
   // baseURL: '/api',
   baseURL: process.env.NODE_ENV == 'development'?'/api':'https://springboot-5buc-2104279-1309439117.ap-shanghai.run.tcloudbase.com',
-  timeout: 20000,
+  timeout: 30000,
   // other axios options you want
   errorConfig: {
     errorHandler(err){
