@@ -2,12 +2,12 @@ import services from '@/services/demo';
 import {
   PageContainer, ProDescriptions, ProCard, ProForm, ProFormText, ProFormDigit
 } from '@ant-design/pro-components';
-import { Typography, message,Modal, Avatar, Row, Space, Col, Button } from 'antd';
+import { Typography, message,Modal, Avatar, Row, Space, Col, Button, Image } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs'
 import { useParams } from '@umijs/max';
 const {Text, Title} = Typography
-const { queryAppInfo, uploadApp, auditApp } = services.ApplicationController;
+const { queryAppInfo, uploadApp, auditApp, releaseApp, getQrcode } = services.ApplicationController;
 
 // type routerParams = {appid:string}
 
@@ -15,15 +15,46 @@ const TableList: React.FC<unknown> = () => {
 
   const params= useParams()
   const [info, setInfo] = useState({})
-  const [showModal, setShowModal] = useState(true)
+  const [latestQrCode, setLatestQrCode] = useState()
+  const [showModal, setShowModal] = useState(false)
   const [versionInfo, setVersionInfo] = useState({})
   const [loading, setLoading] = useState(true)
   const {appid} = params
   useEffect(() => {
     console.log('canshu', params)
     getAppBaseInfo()
-    // audit()
+    getQrCode()
   }, [appid])
+  
+  const arrayBufferToBase64 =(buffer) =>{
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  }
+
+  const getQrCode = async () => {
+    const _qrcode = await getQrcode(appid, {
+      version: 'latest'
+    })
+
+    // let blob = new Blob([_qrcode], { type: _qrcode.type });
+    // let url = URL.createObjectURL(blob);
+    // if (_qrcode.code == 0) {
+      // const url = arrayBufferToBase64(_qrcode)
+      setLatestQrCode(_qrcode)
+    // }
+    // const url = window.URL.createObjectURL(_qrcode)
+    // let r = window.btoa(
+    //   new Uint8Array(_qrcode).reduce((d, byte) => d + String.fromCharCode(byte), '')
+    // )
+    // const url = 'data:image/png;base64,' + r;
+    console.log('获取到的二维码',_qrcode)
+
+  }
 
   const getAppBaseInfo = async () => {
     setLoading(true)
@@ -42,6 +73,12 @@ const TableList: React.FC<unknown> = () => {
     const res = await auditApp(appid)
     console.log('提审结果', res)
   }
+
+  const releaseAppToDy = async () => {
+    const res = await releaseApp(appid)
+    console.log('提审结果', res)
+  }
+  
   
   return (
     <PageContainer
@@ -150,7 +187,9 @@ const TableList: React.FC<unknown> = () => {
             </ProDescriptions>
           }
         </ProCard>
-        <ProCard title="版本信息" subTitle="审核版本">
+        <ProCard title="版本信息" subTitle="审核版本" extra={
+            versionInfo.audit && versionInfo.audit.status == 1 && versionInfo.audit.has_publish == 0 && <Button type="primary" onClick={releaseAppToDy}>发布</Button>
+        }>
           {
             versionInfo.audit && 
             <ProDescriptions
@@ -213,7 +252,9 @@ const TableList: React.FC<unknown> = () => {
         <ProCard title="版本信息" subTitle="测试版本" extra={
           <Space>
             <Button type="primary" onClick={() => setShowModal(true)}>新版本</Button>
-            <Button type="primary" onClick={auditVersion} disabled={versionInfo.latest && versionInfo.latest.has_audit !== 0}>提审</Button>
+            {
+              versionInfo.latest && versionInfo.latest.has_audit == 0 && <Button type="primary" onClick={auditVersion}>提审</Button>
+            }
           </Space>
         }>
           {
@@ -254,6 +295,9 @@ const TableList: React.FC<unknown> = () => {
                   <Col><Avatar src={versionInfo.audit && versionInfo.audit.developer_avatar}/></Col>
                   <Col>{versionInfo.audit && versionInfo.audit.developer_id} </Col>
                 </Row>
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="二维码">
+                {latestQrCode && <img src={latestQrCode} />}
               </ProDescriptions.Item>
             </ProDescriptions>
           }

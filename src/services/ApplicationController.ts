@@ -63,3 +63,33 @@ export async function auditApp(
     },
   });
 }
+
+/** 发布代码 */
+export async function releaseApp(
+  appid: string,
+) {
+  return request<API.Result_UserInfo_>(`/app/release/${appid}`, {
+  method: 'POST',
+  headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+/** 小程序二维码 */
+export async function getQrcode(
+  appid: string,
+  data: {
+    version?: string;
+    path?: string;
+  }
+) {
+  return request<API.Result_UserInfo_>(`/app/qrcode/${appid}`, {
+  // method: 'POST',
+  data,
+  responseType: 'stream',
+  headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
